@@ -10,7 +10,7 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background-color: #f4f4f4;
+            
         }
         h1 {
             color: blue;
@@ -20,11 +20,34 @@
             font-size: 16px;
             cursor: pointer;
         }
+        p{
+            background: yellow;
+            animation: mymove 2s infinite; 
+        }
+        @keyframes mymove {
+            0%{
+                background: yellow;
+            }
+            25%{
+                background: red;
+            }
+            75%{
+                background: green;
+            }
+            100%{
+                background: blue;
+            }
+
+        }
+        
+            
     </style>
 </head>
 <body>
 
     <h1>All-in-One HTML, CSS, and JavaScript</h1>
+    <p>Hello everyone 👋<br>
+    My name is ahmed and im a 2nd year student </p>
     <button onclick="showAlert()">Click Me</button>
 
     <!-- JavaScript Inside HTML -->
