@@ -3,66 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All in One File</title>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-DD3JWGNH88"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-DD3JWGNH88');
-</script>
-    <!-- CSS Inside HTML -->
+    <title>HTML Code Editor</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
         }
-        h1 {
-            color: blue;
+
+        /* Sidebar styles - Fixed on the right */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -220px; /* Initially hidden on the right side */
+            width: 220px;
+            height: 100%;
+            background-color: #f4f4f4;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            z-index: 200;
+            overflow-y: auto;
+            transition: right 0.3s ease; /* Smooth transition for opening/closing */
         }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
+        .sidebar button {
+          margin: 30px 0px 0px 0px; 
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #ddd;
+            border: 1px solid #ccc;
+            font-size: 30px;
             cursor: pointer;
         }
-        p{
-            background: yellow;
-            color: #fff;
-            animation: mymove 2s infinite; 
+        .sidebar button:hover {
+            background-color: #ccc;
         }
-        @keyframes mymove {
-            0%{
-                background: yellow;
-            }
-            25%{
-                background: red;
-            }
-            75%{
-                background: green;
-            }
-            100%{
-                background: blue;
-            }
 
+        /* Editor container styles */
+        .editor-container {
+            width: 100%;
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+            transition: margin-right 0.3s ease; /* Adjust container when sidebar is toggled */
         }
-        
-            
+
+        /* Line Numbers Section */
+        .line-numbers {
+            width: 50px;
+            background: #f0f0f0;
+            text-align: right;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 16px;
+            line-height: 1.5;
+            user-select: none;
+            overflow-y: hidden;
+            height: 100%;
+            position: relative;
+        }
+        .line-number-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding-right: 5px;
+            white-space: pre;
+        }
+
+        /* Textarea styles */
+        textarea {
+            width: 70%; /* 70% width for the text editor */
+            height: 100%;
+            font-family: monospace;
+            font-size: 16px;
+            padding: 10px;
+            border: none;
+            resize: none;
+            line-height: 1.5;
+            overflow: auto;
+        }
+
+        /* Hamburger Icon styles for sidebar toggle */
+        .hamburger {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            cursor: pointer;
+            z-index: 300;
+        }
+        .hamburger div {
+            width: 30px;
+            height: 4px;
+            background-color: #333;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>All-in-One HTML, CSS, and JavaScript</h1>
-    <p>Hello everyone 👋<br>
-    My name is ahmed and im a 2nd year student </p>
-    <button onclick="showAlert()">Click Me</button>
+    <!-- Hamburger Menu Icon -->
+    <div class="hamburger" onclick="toggleSidebar()">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
 
-    <!-- JavaScript Inside HTML -->
+    <!-- Sidebar with Tools -->
+    <div class="sidebar" id="sidebar">
+        <button onclick="insertTag('h2')">Insert &lt;h2&gt;</button>
+        <button onclick="insertTag('p')">Insert &lt;p&gt;</button>
+        <button onclick="insertTag('h1')">Insert &lt;h1&gt;</button>
+        <button onclick="insertTag('ul')">Insert &lt;ul&gt;</button>
+        <button onclick="insertTag('ol')">Insert &lt;ol&gt;</button>
+        <button onclick="saveFile()">Save</button>
+        <button onclick="copyText()">Copy</button>
+
+        <!-- Go to Line Input -->
+        <input type="number" id="lineNumberInput" placeholder="Go to line" min="1" style="width: 100px; padding: 5px;">
+        <button onclick="goToLine()">Go</button>
+        <span id="totalLines">Total Lines: 0</span>
+    </div>
+
+    <!-- Editor Container -->
+    <div class="editor-container">
+        <!-- Line Numbers -->
+        <div class="line-numbers">
+            <div class="line-number-content" id="lineNumbers">1</div>
+        </div>
+        <!-- Text Editor -->
+        <textarea id="editor" placeholder="Start typing your HTML code here..." oninput="updateLineNumbers()" onscroll="syncScroll()"></textarea>
+    </div>
+
     <script>
-        function showAlert() {
-            alert("Hello! Ahmed Tahir 786.");
+        let editor = document.getElementById('editor');
+        let lineNumbers = document.getElementById('lineNumbers');
+        let totalLinesDisplay = document.getElementById('totalLines');
+        let sidebar = document.getElementById('sidebar');
+        let editorContainer = document.querySelector('.editor-container');
+
+        function updateLineNumbers() {
+            let lines = editor.value.split("\n").length;
+            let lineNumbersHTML = "";
+            for (let i = 1; i <= lines; i++) {
+                lineNumbersHTML += i + "\n";
+            }
+            lineNumbers.innerText = lineNumbersHTML;
+            totalLinesDisplay.innerText = "Total Lines: " + lines;
         }
+
+        function syncScroll() {
+            let scrollTop = editor.scrollTop;
+            lineNumbers.style.transform = `translateY(-${scrollTop}px)`;
+        }
+
+        function insertTag(tag) {
+            const tagContent = getTagContent(tag);
+            const cursorPosition = editor.selectionStart;
+            const currentContent = editor.value;
+
+            editor.value = currentContent.slice(0, cursorPosition) + tagContent + currentContent.slice(cursorPosition);
+            editor.selectionStart = editor.selectionEnd = cursorPosition + tagContent.length;
+
+            updateLineNumbers();
+        }
+
+        function getTagContent(tag) {
+            switch(tag) {
+                case 'h2': return '<h2>Your Heading 2</h2>';
+                case 'p': return '<p>Your paragraph here.</p>';
+                case 'h1': return '<h1>Your Heading 1</h1>';
+                case 'ul': return '<ul><li>Your list item</li></ul>';
+                case 'ol': return '<ol><li>Your list item</li></ol>';
+                default: return '';
+            }
+        }
+
+        function saveFile() {
+            const htmlContent = editor.value;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'my_html_file.html';
+            link.click();
+        }
+
+        function goToLine() {
+            const lineNumber = parseInt(document.getElementById('lineNumberInput').value);
+            const lines = editor.value.split("\n");
+
+            if (isNaN(lineNumber) || lineNumber < 1) {
+                alert('Please enter a valid line number.');
+                return;
+            }
+
+            if (lineNumber > lines.length) {
+                alert('Line number exceeds total lines in the document. Total lines: ' + lines.length);
+                return;
+            }
+
+            let position = 0;
+            for (let i = 0; i < lineNumber - 1; i++) {
+                position += lines[i].length + 1;
+            }
+
+            editor.focus();
+            editor.selectionStart = editor.selectionEnd = position;
+        }
+
+        function copyText() {
+            // Select the text content of the editor
+            editor.select();
+            document.execCommand('copy');
+
+            // Alert that the text has been copied
+            alert('Content copied to clipboard!');
+        }
+
+        function toggleSidebar() {
+            // Toggle the sidebar visibility by moving it right/left
+            if (sidebar.style.right === '0px') {
+                sidebar.style.right = '-220px';  // Hide the sidebar
+                editorContainer.style.marginRight = '0';  // Adjust editor container
+            } else {
+                sidebar.style.right = '0px';  // Show the sidebar
+                editorContainer.style.marginRight = '220px';  // Adjust editor container
+            }
+        }
+
+        updateLineNumbers();
     </script>
 
 </body>
